@@ -10,7 +10,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        jcenter()
     }
 }
 rootProject.name = "mvvm-compose-circular-demo"
 include ':app'
+include ':data'
+include ':domain'
