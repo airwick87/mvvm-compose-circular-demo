@@ -1,12 +1,16 @@
 package com.eric.mvvm_compose_circular_demo.di
 
+import android.content.Context
 import com.eric.data.services.UserService
 import com.eric.mvvm_compose_circular_demo.BuildConfig
+import com.eric.mvvm_compose_circular_demo.di.interceptors.NonAuthInterceptor
+import com.eric.mvvm_compose_circular_demo.di.interceptors.UserInterceptor
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -24,11 +28,12 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
         val builder = OkHttpClient.Builder().apply {
             addInterceptor(NonAuthInterceptor())
             if (BuildConfig.DEBUG) {
                 addInterceptor(getLogger())
+                addInterceptor(UserInterceptor(context))
             }
             connectTimeout(30, TimeUnit.SECONDS)
         }
