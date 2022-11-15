@@ -8,7 +8,7 @@ sealed class ErrorEntity(val message: String) {
         }
     }
 
-    class NoResponse(message: String) : ErrorEntity(message) {
+    class NetworkFailure(message: String = "network failure") : ErrorEntity(message) {
         override fun toString(): String {
             return this.javaClass.canonicalName ?: ""
         }

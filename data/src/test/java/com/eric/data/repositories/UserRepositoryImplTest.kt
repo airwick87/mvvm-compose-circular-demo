@@ -3,8 +3,8 @@ package com.eric.data.repositories
 import com.eric.data.dto.UserDTO
 import com.eric.data.services.UserService
 import konveyor.base.randomBuild
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody
 import org.junit.Before
 import org.junit.Test
@@ -12,7 +12,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import retrofit2.Response
 
-
+@OptIn(ExperimentalCoroutinesApi::class)
 class UserRepositoryImplTest {
 
     private val mockUserService = mock<UserService>()
@@ -26,14 +26,15 @@ class UserRepositoryImplTest {
 
     @Test
     fun `get user success`() {
-        runBlockingTest {
+        runTest {
             whenever(mockUserService.getUser()).thenReturn(
                 Response.success(response)
             )
 
-            sut.getUser().collect {
-                assert(it.isSuccess())
-                it.extractData().apply {
+            val result = sut.getUser()
+            result.apply {
+                assert(isSuccess())
+                extractData().apply {
                     assert(username == response.username)
                     assert(lastEnergyLevel == response.bookings.first().car.lastEnergyLevel)
                     assert(subMilesLeft == response.bookings.first().subMilesLeft)
@@ -44,15 +45,13 @@ class UserRepositoryImplTest {
 
     @Test
     fun `get user failure`() {
-        runBlockingTest {
+        runTest {
             whenever(mockUserService.getUser()).thenReturn(
                 Response.error(404, ResponseBody.create(null, "not found"))
             )
-            sut.getUser().collect {
-                assert(it.isFailure())
-            }
+            val result = sut.getUser()
+            assert(result.isFailure())
         }
     }
-
 
 }

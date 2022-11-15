@@ -4,6 +4,6 @@ import com.eric.domain.models.UserDomainModel
 import com.eric.domain.shared.ResultResponse
 import kotlinx.coroutines.flow.Flow
 
-interface UserRepository {
-    suspend fun getUser(): Flow<ResultResponse<UserDomainModel>>
+interface UserRepository : BaseRepository{
+    suspend fun getUser(): ResultResponse<UserDomainModel>
 }
