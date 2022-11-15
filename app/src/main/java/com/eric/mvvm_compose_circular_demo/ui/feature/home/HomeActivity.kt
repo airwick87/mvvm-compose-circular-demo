@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.eric.domain.models.getEnergyFloat
@@ -48,10 +49,7 @@ class HomeActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    val state = viewModel.userState.collectAsState()
-                    HomeScreen(state.value) {
-                        viewModel.loadUser()
-                    }
+                    HomeScreen(viewModel)
                 }
             }
         }
@@ -60,9 +58,9 @@ class HomeActivity : ComponentActivity() {
 
 @Composable
 fun HomeScreen(
-    state: HomeState,
-    onRefreshButtonClicked: () -> Unit
+    viewModel: HomeViewModel
 ) {
+    val state = viewModel.userState.collectAsState()
     var progressEnergy by remember { mutableStateOf(0.1f) }
     var progressRemainingMiles by remember { mutableStateOf(0.1f) }
     val energyFloatAnim = animateFloatAsState(
@@ -76,17 +74,19 @@ fun HomeScreen(
 
     Column(modifier = Modifier.padding(12.dp)) {
         Row {
-            Button(onClick = {
-                onRefreshButtonClicked.invoke()
+            Button(
+                modifier = Modifier.testTag("RefreshButton"),
+                onClick = {
+                    viewModel.loadUser()
             }) {
                 Text(stringResource(id = R.string.refresh))
             }
         }
 
-        when (state) {
+        when (state.value) {
             is HomeState.Error -> Toast.makeText(
                 LocalContext.current,
-                state.message,
+                (state.value as HomeState.Error).message,
                 Toast.LENGTH_SHORT
             ).show()
             HomeState.Loading -> {
@@ -98,8 +98,9 @@ fun HomeScreen(
                 }
             }
             is HomeState.ShowBooking -> {
-                progressEnergy = state.userDomainModel.getEnergyFloat()
-                progressRemainingMiles = state.userDomainModel.getMilesFloat()
+                val userDomainModel = (state.value as HomeState.ShowBooking).userDomainModel
+                progressEnergy = userDomainModel.getEnergyFloat()
+                progressRemainingMiles = userDomainModel.getMilesFloat()
 
                 Row(
                     modifier = Modifier.padding(12.dp),
@@ -110,16 +111,18 @@ fun HomeScreen(
                         progress = remainingMilesAnim,
                         text = stringResource(
                             id = R.string.milesRemaining,
-                            state.userDomainModel.subMilesLeft
-                        )
+                            userDomainModel.subMilesLeft
+                        ),
+                        testTag = "milesTag"
                     )
                     CircularProgressText(
                         modifier = Modifier.weight(1f),
                         progress = energyFloatAnim,
                         text = stringResource(
                             id = R.string.energyRemaining,
-                            state.userDomainModel.lastEnergyLevel
-                        )
+                            userDomainModel.lastEnergyLevel
+                        ),
+                        testTag = "energyTag"
                     )
                 }
             }
